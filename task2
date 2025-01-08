@@ -1,0 +1,96 @@
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.sql.*;
+import java.util.*;
+import javax.swing.*;
+import javax.swing.table.*;
+
+public class LibraryManagementSystem {
+
+    // Database connection details (replace with your actual credentials)
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/library";
+    private static final String USER = "your_username";
+    private static final String PASS = "your_password";
+
+    // Main GUI class
+    private static class LibraryFrame extends JFrame {
+        private JTable itemTable;
+        private DefaultTableModel tableModel;
+        private JTextField searchField;
+        private JComboBox<String> searchByComboBox;
+        private JButton searchButton, addButton, checkoutButton, returnButton, fineButton;
+        private JLabel userRoleLabel;
+        private User currentUser;
+
+        public LibraryFrame(User user) {
+            this.currentUser = user;
+            setTitle("Library Management System");
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            setSize(800, 600);
+            setLayout(new BorderLayout());
+
+            // Create table
+            String columnNames = {"Title", "Author", "Type", "Availability"};
+            tableModel = new DefaultTableModel(columnNames, 0);
+            itemTable = new JTable(tableModel);
+            JScrollPane scrollPane = new JScrollPane(itemTable);
+            add(scrollPane, BorderLayout.CENTER);
+
+            // Create search panel
+            JPanel searchPanel = new JPanel();
+            searchPanel.setLayout(new FlowLayout());
+            searchField = new JTextField(20);
+            searchByComboBox = new JComboBox<>(new String{"Title", "Author", "Category"});
+            searchButton = new JButton("Search");
+            searchButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    searchItems();
+                }
+            });
+            searchPanel.add(new JLabel("Search by:"));
+            searchPanel.add(searchByComboBox);
+            searchPanel.add(searchField);
+            searchPanel.add(searchButton);
+            add(searchPanel, BorderLayout.NORTH);
+
+            // Create buttons
+            JPanel buttonPanel = new JPanel();
+            addButton = new JButton("Add Item");
+            addButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (currentUser.getRole().equals("Librarian")) {
+                        addItemDialog();
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Only librarians can add items.");
+                    }
+                }
+            });
+            buttonPanel.add(addButton);
+            checkoutButton = new JButton("Checkout");
+            checkoutButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (currentUser.getRole().equals("Patron")) {
+                        checkoutItem();
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Only patrons can checkout items.");
+                    }
+                }
+            });
+            buttonPanel.add(checkoutButton);
+            returnButton = new JButton("Return Item");
+            returnButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (currentUser.getRole().equals("Patron")) {
+                        returnItem();
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Only patrons can return items.");
+                    }
+                }
+            });
+            buttonPanel.add(returnButton);
+            fineButton
